@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo con Asistente IA</title>
+    <title>Catálogo con Personalización Avanzada</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -13,52 +13,60 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #2a2d34; /* Color de fondo oscuro solicitado */
-            color: #e5e7eb; /* Color de texto claro para contraste */
+            background-color: #2a2d34;
+            color: #e5e7eb;
         }
         .product-card {
-            background-color: #373a40; /* Un gris un poco más claro para las tarjetas */
+            /* Se mantiene el contenedor general, pero el estilo se divide en las partes internas */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #4b5563;
+            cursor: pointer;
         }
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
         }
-        .price-tag {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
         .modal.hidden { display: none; }
         .modal { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #cart-count.updated {
-            transform: scale(1.3);
-            transition: transform 0.2s ease;
+        .modal-content-dark { background-color: #373a40; color: #e5e7eb; }
+        
+        /* Estilos para el modal de producto */
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
         }
-        .loader {
-            border: 4px solid #4b5563;
-            border-top: 4px solid #818cf8; /* Color índigo claro para el loader */
+        .color-swatch.selected { border-color: #818cf8; }
+        
+        .size-button {
+            border: 1px solid #6b7280;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .size-button.selected { background-color: #818cf8; color: #111827; border-color: #818cf8; }
+        
+        .slideshow-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.5);
+            color: white;
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .modal-content-dark {
-            background-color: #373a40;
-            color: #e5e7eb;
-        }
+        .slideshow-btn:hover { background-color: rgba(0,0,0,0.8); }
     </style>
 </head>
 <body class="text-gray-200">
@@ -66,14 +74,11 @@
     <!-- ========== BARRA DE NAVEGACIÓN Y LOGO ========== -->
     <header class="sticky top-0 z-40 bg-[#2a2d34] shadow-lg shadow-black/20">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <!-- Espaciador para centrar el logo -->
             <div class="w-10"></div>
-            <!-- Logo centrado -->
             <div class="flex-1 flex justify-center">
                 <img src="http://googleusercontent.com/file_content/1" alt="Logo Graficos Wey" class="h-16">
             </div>
-            <!-- Botón del carrito -->
-            <button id="cart-button" class="relative p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+            <button id="cart-button" class="relative p-2 rounded-full hover:bg-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 <span id="cart-count" class="absolute -top-1 -right-1 bg-indigo-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
             </button>
@@ -83,258 +88,397 @@
     <!-- ========== GALERÍA DE PRODUCTOS ========== -->
     <main class="container mx-auto px-4 py-12">
         <h2 class="text-3xl font-bold mb-8 text-center text-white">Nuestros Productos</h2>
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            <!-- Las tarjetas de productos se insertarán aquí dinámicamente -->
-        </div>
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
     </main>
 
     <!-- ========== MODAL DEL CARRITO DE COMPRAS ========== -->
     <div id="cart-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-        <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-md m-4">
+        <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-lg m-4">
             <div class="p-4 border-b border-gray-600 flex justify-between items-center">
                 <h3 class="text-xl font-semibold">Mi Carrito</h3>
                 <button id="close-cart-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
             <div id="cart-items" class="p-4 max-h-80 overflow-y-auto"></div>
             <div class="p-4 border-t border-gray-600 space-y-3">
-                <div class="flex justify-between items-center font-bold text-lg">
-                    <span>Total:</span>
-                    <span id="cart-total">RD$0.00</span>
+                <div class="space-y-1 text-lg">
+                    <div class="flex justify-between"><span>Subtotal:</span><span id="cart-subtotal">$0.00</span></div>
+                    <div class="flex justify-between"><span>Impuestos (<span id="tax-rate-display"></span>%):</span><span id="cart-tax">$0.00</span></div>
+                    <div class="flex justify-between font-bold"><span>Total:</span><span id="cart-total">$0.00</span></div>
                 </div>
-                <button id="gemini-suggest-btn" class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
-                    ✨ Sugerir Productos
-                </button>
-                <button id="checkout-btn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
-                    Comprar por WhatsApp
-                </button>
+                <button id="checkout-btn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600">Comprar por WhatsApp</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ========== MODAL DE DETALLE DE PRODUCTO ========== -->
+    <div id="product-detail-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+         <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-4xl max-h-full overflow-y-auto">
+            <div class="p-4 border-b border-gray-600 flex justify-between items-center sticky top-0 bg-[#373a40] z-10">
+                <h3 id="product-modal-title" class="text-2xl font-semibold"></h3>
+                <button id="close-product-modal-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                <!-- Columna de Imagen -->
+                <div class="relative">
+                    <div id="product-modal-slideshow" class="w-full h-96 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden relative">
+                        <!-- Las imágenes se insertarán aquí -->
+                    </div>
+                    <div id="prev-slide-btn" class="slideshow-btn left-2">&lt;</div>
+                    <div id="next-slide-btn" class="slideshow-btn right-2">&gt;</div>
+                </div>
+                <!-- Columna de Opciones -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="font-semibold text-lg">Color:</label>
+                        <div id="product-modal-colors" class="flex gap-3 mt-2 flex-wrap"></div>
+                    </div>
+                    <div id="size-section" class="hidden">
+                        <label class="font-semibold text-lg">Talla:</label>
+                        <div id="product-modal-sizes" class="flex gap-3 mt-2 flex-wrap"></div>
+                    </div>
+                    <div>
+                        <label for="custom-specs" class="font-semibold text-lg">Especificaciones de personalización:</label>
+                        <textarea id="custom-specs" rows="3" class="w-full mt-2 p-2 bg-gray-700 border border-gray-500 rounded-md text-white" placeholder="Ej: 'Quiero el logo en el pecho izquierdo'"></textarea>
+                    </div>
+                     <div>
+                        <label for="ref-image" class="font-semibold text-lg">Imagen de referencia (Opcional):</label>
+                        <input type="file" id="ref-image" class="w-full mt-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600">
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label for="quantity" class="font-semibold text-lg">Cantidad:</label>
+                        <input type="number" id="quantity" value="1" min="1" class="w-20 text-center border rounded-md p-1 bg-gray-700 border-gray-500 text-white">
+                    </div>
+                    <div class="text-2xl font-bold text-right">
+                        Total: <span id="product-modal-total-price">$0.00</span>
+                    </div>
+                    <button id="add-to-cart-modal-btn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700">Añadir al Carrito</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL PARA RESPUESTAS DE GEMINI ========== -->
-    <div id="gemini-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-        <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-md m-4">
-            <div class="p-4 border-b border-gray-600 flex justify-between items-center">
-                <h3 id="gemini-modal-title" class="text-xl font-semibold">Asistente IA</h3>
-                <button id="close-gemini-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-            </div>
-            <div id="gemini-modal-content" class="p-6 min-h-[150px]">
-                <!-- El contenido de Gemini o el loader se mostrará aquí -->
-            </div>
-        </div>
-    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // ========== CONFIGURACIÓN INICIAL ==========
-            const whatsappNumber = '18091234567'; 
-            const GEMINI_API_KEY = ''; 
-            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+    document.addEventListener('DOMContentLoaded', () => {
+        // ========== CONFIGURACIÓN INICIAL ==========
+        const whatsappNumber = '18091234567';
+        const TAX_RATE = 18; // Tasa de impuesto en porcentaje. Ejemplo: 18% para ITBIS.
 
-            const products = [
-                { id: 1, name: 'Taza Personalizada', price: 450, image: 'https://placehold.co/400x400/e2e8f0/4a5568?text=Taza' },
-                { id: 2, name: 'Camiseta con Diseño', price: 800, image: 'https://placehold.co/400x400/dbeafe/1e3a8a?text=Camiseta' },
-                { id: 3, name: 'Gorra Bordada', price: 650, image: 'https://placehold.co/400x400/d1fae5/064e3b?text=Gorra' },
-                { id: 4, name: 'Llavero Grabado', price: 250, image: 'https://placehold.co/400x400/fee2e2/991b1b?text=Llavero' },
-                { id: 5, name: 'Termo de Acero', price: 950, image: 'https://placehold.co/400x400/e0e7ff/3730a3?text=Termo' },
-                { id: 6, name: 'Mousepad Creativo', price: 500, image: 'https://placehold.co/400x400/f3e8ff/581c87?text=Mousepad' },
-                { id: 7, name: 'Agenda 2025', price: 700, image: 'https://placehold.co/400x400/fefce8/854d0e?text=Agenda' },
-                { id: 8, name: 'Funda de Celular', price: 600, image: 'https://placehold.co/400x400/ecfdf5/047857?text=Funda' },
-            ];
-
-            let cart = []; 
-
-            // Elementos del DOM
-            const productGrid = document.getElementById('product-grid');
-            const cartButton = document.getElementById('cart-button');
-            const cartModal = document.getElementById('cart-modal');
-            const closeCartBtn = document.getElementById('close-cart-btn');
-            const cartCount = document.getElementById('cart-count');
-            const cartItemsContainer = document.getElementById('cart-items');
-            const cartTotal = document.getElementById('cart-total');
-            const checkoutBtn = document.getElementById('checkout-btn');
-            const geminiModal = document.getElementById('gemini-modal');
-            const geminiModalTitle = document.getElementById('gemini-modal-title');
-            const geminiModalContent = document.getElementById('gemini-modal-content');
-            const closeGeminiBtn = document.getElementById('close-gemini-btn');
-            const geminiSuggestBtn = document.getElementById('gemini-suggest-btn');
-
-            // ========== FUNCIONES DE GEMINI ==========
-            async function callGeminiAPI(prompt) {
-                if (!GEMINI_API_KEY) {
-                    return "Error: La clave API de Gemini no ha sido configurada. Por favor, añádela en el código.";
-                }
-                try {
-                    const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                    const response = await fetch(GEMINI_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!response.ok) throw new Error(`Error de API: ${response.statusText}`);
-                    const data = await response.json();
-                    return data.candidates[0].content.parts[0].text;
-                } catch (error) {
-                    console.error("Error al llamar a la API de Gemini:", error);
-                    return "Lo siento, no pude obtener una respuesta en este momento.";
-                }
+        const products = [
+            {
+                id: 1, name: 'Taza', basePrice: 10.00, type: 'accesory',
+                variants: [
+                    { color: 'Blanco', colorHex: '#FFFFFF', images: ['https://placehold.co/600x600/FFFFFF/333?text=Taza+Blanca'] },
+                    { color: 'Negro', colorHex: '#000000', images: ['https://placehold.co/600x600/000000/FFF?text=Taza+Negra'] }
+                ]
+            },
+            {
+                id: 2, name: 'Camiseta', basePrice: 25.00, type: 'clothing',
+                sizes: ['S', 'M', 'L', 'XL'],
+                variants: [
+                    { color: 'Blanco', colorHex: '#FFFFFF', images: ['https://placehold.co/600x600/FFFFFF/333?text=Camiseta+Blanca+1', 'https://placehold.co/600x600/FFFFFF/333?text=Camiseta+Blanca+2'] },
+                    { color: 'Negro', colorHex: '#000000', images: ['https://placehold.co/600x600/000000/FFF?text=Camiseta+Negra+1', 'https://placehold.co/600x600/000000/FFF?text=Camiseta+Negra+2'] },
+                    { color: 'Rojo', colorHex: '#DC2626', images: ['https://placehold.co/600x600/DC2626/FFF?text=Camiseta+Roja'] }
+                ]
+            },
+            {
+                id: 3, name: 'Hoodie', basePrice: 45.00, type: 'clothing',
+                sizes: ['S', 'M', 'L', 'XL'],
+                variants: [
+                    { color: 'Gris', colorHex: '#6B7280', images: ['https://placehold.co/600x600/6B7280/FFF?text=Hoodie+Gris'] },
+                    { color: 'Azul', colorHex: '#3B82F6', images: ['https://placehold.co/600x600/3B82F6/FFF?text=Hoodie+Azul'] }
+                ]
+            },
+            {
+                id: 4, name: 'Gorra', basePrice: 15.00, type: 'accesory',
+                variants: [
+                    { color: 'Negro', colorHex: '#000000', images: ['https://placehold.co/600x600/000000/FFF?text=Gorra+Negra'] },
+                    { color: 'Beige', colorHex: '#F5F5DC', images: ['https://placehold.co/600x600/F5F5DC/333?text=Gorra+Beige'] }
+                ]
             }
+        ];
 
-            function showGeminiLoading(title) {
-                geminiModalTitle.textContent = title;
-                geminiModalContent.innerHTML = '<div class="loader"></div>';
-                geminiModal.classList.remove('hidden');
-            }
+        let cart = [];
+        let currentProductState = {};
 
-            function showGeminiResponse(content) {
-                geminiModalContent.innerHTML = content.replace(/\n/g, '<br>');
-            }
+        // Elementos del DOM
+        const productGrid = document.getElementById('product-grid');
+        const cartButton = document.getElementById('cart-button');
+        const cartModal = document.getElementById('cart-modal');
+        const closeCartBtn = document.getElementById('close-cart-btn');
+        const cartCount = document.getElementById('cart-count');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const cartSubtotalEl = document.getElementById('cart-subtotal');
+        const cartTaxEl = document.getElementById('cart-tax');
+        const cartTotalEl = document.getElementById('cart-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        document.getElementById('tax-rate-display').textContent = TAX_RATE;
 
-            // ========== FUNCIONES DE LA APLICACIÓN ==========
-            function renderProducts() {
-                productGrid.innerHTML = '';
-                products.forEach(product => {
-                    productGrid.innerHTML += `
-                        <div class="product-card rounded-lg overflow-hidden shadow-lg flex flex-col">
-                            <div class="relative">
-                                <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover">
-                                <div class="absolute top-2 right-2"><span class="price-tag">RD$${product.price.toFixed(2)}</span></div>
-                            </div>
-                            <div class="p-4 text-center flex-grow flex flex-col justify-between">
-                                <h3 class="text-lg font-semibold mb-3 text-white">${product.name}</h3>
-                                <div class="space-y-2">
-                                    <button data-id="${product.id}" data-name="${product.name}" class="gemini-idea-btn w-full bg-indigo-900/50 text-indigo-300 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-900/80 transition-colors text-sm">
-                                        ✨ Generar Ideas
-                                    </button>
-                                    <button data-id="${product.id}" class="add-to-cart-btn bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors w-full">
-                                        Añadir al carrito
-                                    </button>
-                                </div>
+        // Elementos del Modal de Producto
+        const productDetailModal = document.getElementById('product-detail-modal');
+        const closeProductModalBtn = document.getElementById('close-product-modal-btn');
+        const productModalTitle = document.getElementById('product-modal-title');
+        const slideshow = document.getElementById('product-modal-slideshow');
+        const prevBtn = document.getElementById('prev-slide-btn');
+        const nextBtn = document.getElementById('next-slide-btn');
+        const colorsContainer = document.getElementById('product-modal-colors');
+        const sizeSection = document.getElementById('size-section');
+        const sizesContainer = document.getElementById('product-modal-sizes');
+        const customSpecsInput = document.getElementById('custom-specs');
+        const quantityInput = document.getElementById('quantity');
+        const modalTotalPrice = document.getElementById('product-modal-total-price');
+        const addToCartModalBtn = document.getElementById('add-to-cart-modal-btn');
+
+        // ========== FUNCIONES DE LA APLICACIÓN ==========
+        function renderProducts() {
+            productGrid.innerHTML = '';
+            products.forEach(product => {
+                productGrid.innerHTML += `
+                    <div class="product-card rounded-lg overflow-hidden shadow-lg flex flex-col" data-id="${product.id}">
+                        <!-- Parte de la imagen -->
+                        <div class="relative">
+                            <img src="${product.variants[0].images[0]}" alt="${product.name}" class="w-full h-64 object-cover">
+                            <div class="absolute top-2 right-2 p-1 px-3 bg-black/60 backdrop-blur-sm rounded-full text-white font-semibold text-sm">
+                                $${product.basePrice.toFixed(2)}
                             </div>
                         </div>
-                    `;
-                });
-            }
-
-            function addToCart(productId) {
-                const product = products.find(p => p.id === productId);
-                const cartItem = cart.find(item => item.id === productId);
-                if (cartItem) cartItem.quantity++;
-                else cart.push({ ...product, quantity: 1 });
-                updateCart();
-            }
-            
-            function updateQuantity(productId, quantity) {
-                const cartItem = cart.find(item => item.id === productId);
-                if (cartItem) {
-                    if (quantity > 0) cartItem.quantity = quantity;
-                    else cart = cart.filter(item => item.id !== productId);
-                }
-                updateCart();
-            }
-
-            function updateCart() {
-                renderCartItems();
-                updateCartCount();
-                updateCartTotal();
-            }
-
-            function renderCartItems() {
-                cartItemsContainer.innerHTML = '';
-                if (cart.length === 0) {
-                    cartItemsContainer.innerHTML = '<p class="text-gray-400 text-center">Tu carrito está vacío.</p>';
-                    return;
-                }
-                cart.forEach(item => {
-                    cartItemsContainer.innerHTML += `
-                        <div class="flex items-center justify-between py-3 border-b border-gray-600 last:border-b-0">
-                            <div class="flex items-center gap-4">
-                                <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md">
-                                <div>
-                                    <p class="font-semibold text-white">${item.name}</p>
-                                    <p class="text-sm text-gray-400">RD$${item.price.toFixed(2)}</p>
-                                </div>
+                        <!-- Parte de la información y botón -->
+                        <div class="p-4 text-center flex-grow flex flex-col justify-between bg-[#373a40]">
+                            <h3 class="text-lg font-semibold text-white mb-3">${product.name}</h3>
+                            <div class="w-full bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors pointer-events-none">
+                                Personalizar
                             </div>
-                            <input type="number" min="1" value="${item.quantity}" data-id="${item.id}" class="quantity-input w-16 text-center border rounded-md p-1 bg-gray-700 border-gray-500 text-white">
-                        </div>`;
-                });
-            }
-
-            function updateCartCount() {
-                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-                cartCount.textContent = totalItems;
-                cartCount.classList.add('updated');
-                setTimeout(() => cartCount.classList.remove('updated'), 200);
-            }
-            
-            function updateCartTotal() {
-                const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-                cartTotal.textContent = `RD$${total.toFixed(2)}`;
-            }
-
-            function checkout() {
-                if (cart.length === 0) return;
-                let message = '¡Hola! 👋 Me gustaría hacer el siguiente pedido:\n\n';
-                cart.forEach(item => {
-                    message += `*Producto:* ${item.name}\n*Cantidad:* ${item.quantity}\n*Subtotal:* RD$${(item.price * item.quantity).toFixed(2)}\n------------------------\n`;
-                });
-                const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-                message += `\n*TOTAL DEL PEDIDO: RD$${total.toFixed(2)}*`;
-                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
-            }
-            
-            // ========== MANEJADORES DE EVENTOS ==========
-            cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
-            closeCartBtn.addEventListener('click', () => cartModal.classList.add('hidden'));
-            closeGeminiBtn.addEventListener('click', () => geminiModal.classList.add('hidden'));
-            [cartModal, geminiModal].forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) modal.classList.add('hidden');
-                });
+                        </div>
+                    </div>
+                `;
             });
+        }
+        
+        // --- Lógica del Modal de Producto ---
+        function openProductModal(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
 
-            productGrid.addEventListener('click', async (e) => {
-                const target = e.target.closest('button');
-                if (!target) return;
-
-                if (target.classList.contains('add-to-cart-btn')) {
-                    addToCart(parseInt(target.dataset.id));
-                } else if (target.classList.contains('gemini-idea-btn')) {
-                    const productName = target.dataset.name;
-                    showGeminiLoading(`Ideas para ${productName}`);
-                    const prompt = `Dame 5 ideas creativas y originales para personalizar un(a) "${productName}". Usa un tono amigable y presenta las ideas en una lista con viñetas.`;
-                    const response = await callGeminiAPI(prompt);
-                    showGeminiResponse(response);
-                }
-            });
-
-            cartItemsContainer.addEventListener('change', (e) => {
-                if (e.target.classList.contains('quantity-input')) {
-                    updateQuantity(parseInt(e.target.dataset.id), parseInt(e.target.value));
-                }
+            currentProductState = {
+                product: product,
+                variant: product.variants[0],
+                size: product.sizes ? product.sizes[0] : null,
+                quantity: 1,
+                slideIndex: 0
+            };
+            
+            productModalTitle.textContent = product.name;
+            
+            // Colores
+            colorsContainer.innerHTML = '';
+            product.variants.forEach((variant, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                if (index === 0) swatch.classList.add('selected');
+                swatch.style.backgroundColor = variant.colorHex;
+                swatch.dataset.index = index;
+                colorsContainer.appendChild(swatch);
             });
             
-            checkoutBtn.addEventListener('click', checkout);
+            // Tallas
+            if (product.type === 'clothing' && product.sizes) {
+                sizesContainer.innerHTML = '';
+                product.sizes.forEach((size, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'size-button';
+                    if (index === 0) btn.classList.add('selected');
+                    btn.textContent = size;
+                    btn.dataset.size = size;
+                    sizesContainer.appendChild(btn);
+                });
+                sizeSection.classList.remove('hidden');
+            } else {
+                sizeSection.classList.add('hidden');
+            }
+            
+            customSpecsInput.value = '';
+            quantityInput.value = 1;
+            
+            updateProductModalUI();
+            productDetailModal.classList.remove('hidden');
+        }
 
-            geminiSuggestBtn.addEventListener('click', async () => {
-                if (cart.length === 0) {
-                    showGeminiLoading('Sugerencias');
-                    showGeminiResponse('Añade productos a tu carrito primero para recibir sugerencias.');
-                    return;
-                }
-                
-                showGeminiLoading('Buscando sugerencias...');
-                const cartProductNames = cart.map(item => item.name).join(', ');
-                const availableProducts = products.filter(p => !cart.find(item => item.id === p.id)).map(p => p.name).join(', ');
-                const prompt = `Un cliente tiene estos productos en su carrito: ${cartProductNames}. De los siguientes productos disponibles en la tienda: ${availableProducts}, ¿cuáles 2 o 3 le recomendarías para complementar su compra? Da una razón muy breve y amigable para cada sugerencia.`;
-                const response = await callGeminiAPI(prompt);
-                showGeminiResponse(response);
+        function updateProductModalUI() {
+            // Slideshow
+            slideshow.innerHTML = '';
+            currentProductState.variant.images.forEach((imgSrc, index) => {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.className = 'w-full h-full object-contain absolute transition-opacity duration-300';
+                img.style.opacity = index === currentProductState.slideIndex ? '1' : '0';
+                slideshow.appendChild(img);
             });
+            
+            // Precio
+            const total = currentProductState.product.basePrice * currentProductState.quantity;
+            modalTotalPrice.textContent = `$${total.toFixed(2)}`;
+        }
 
-            // ========== INICIALIZACIÓN ==========
-            renderProducts();
+        // --- Lógica del Carrito ---
+        function addToCart() {
+            const cartItem = {
+                cartId: Date.now(), // ID único para este item en el carrito
+                productId: currentProductState.product.id,
+                name: currentProductState.product.name,
+                price: currentProductState.product.basePrice,
+                quantity: currentProductState.quantity,
+                color: currentProductState.variant.color,
+                size: currentProductState.size,
+                specs: customSpecsInput.value,
+                image: currentProductState.variant.images[0]
+            };
+            cart.push(cartItem);
+            updateCartUI();
+            productDetailModal.classList.add('hidden');
+        }
+
+        function updateCartUI() {
+            renderCartItems();
+            updateCartTotals();
+            updateCartCount();
+        }
+
+        function renderCartItems() {
+            cartItemsContainer.innerHTML = '';
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-gray-400 text-center">Tu carrito está vacío.</p>';
+                return;
+            }
+            cart.forEach(item => {
+                let details = `Color: ${item.color}`;
+                if (item.size) details += `, Talla: ${item.size}`;
+
+                cartItemsContainer.innerHTML += `
+                    <div class="flex items-start justify-between py-3 border-b border-gray-600 last:border-b-0">
+                        <div class="flex items-start gap-4">
+                            <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-md">
+                            <div>
+                                <p class="font-semibold text-white">${item.name} (x${item.quantity})</p>
+                                <p class="text-sm text-gray-400">${details}</p>
+                                ${item.specs ? `<p class="text-xs text-gray-400 mt-1 italic">"${item.specs}"</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-white">$${(item.price * item.quantity).toFixed(2)}</p>
+                            <button class="text-red-400 text-xs hover:underline" data-cart-id="${item.cartId}">Eliminar</button>
+                        </div>
+                    </div>`;
+            });
+        }
+        
+        function updateCartTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const tax = subtotal * (TAX_RATE / 100);
+            const total = subtotal + tax;
+
+            cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+            cartTaxEl.textContent = `$${tax.toFixed(2)}`;
+            cartTotalEl.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+
+        function checkout() {
+            if (cart.length === 0) return;
+            let message = '¡Hola! 👋 Me gustaría hacer el siguiente pedido:\n\n';
+            cart.forEach(item => {
+                message += `*Producto:* ${item.name}\n`;
+                message += `*Cantidad:* ${item.quantity}\n`;
+                message += `*Color:* ${item.color}\n`;
+                if (item.size) message += `*Talla:* ${item.size}\n`;
+                if (item.specs) message += `*Especificaciones:* ${item.specs}\n`;
+                message += `*Subtotal:* $${(item.price * item.quantity).toFixed(2)}\n`;
+                message += '------------------------\n';
+            });
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const tax = subtotal * (TAX_RATE / 100);
+            const total = subtotal + tax;
+
+            message += `\n*Subtotal:* $${subtotal.toFixed(2)}`;
+            message += `\n*Impuestos (${TAX_RATE}%):* $${tax.toFixed(2)}`;
+            message += `\n*TOTAL DEL PEDIDO:* $${total.toFixed(2)}`;
+            
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        // ========== MANEJADORES DE EVENTOS ==========
+        productGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.product-card');
+            if (card) {
+                openProductModal(parseInt(card.dataset.id));
+            }
         });
-    </script>
 
+        // Eventos de Modales (Cerrar)
+        [closeCartBtn, closeProductModalBtn].forEach(btn => btn.addEventListener('click', () => {
+            cartModal.classList.add('hidden');
+            productDetailModal.classList.add('hidden');
+        }));
+        [cartModal, productDetailModal].forEach(modal => modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        }));
+        cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
+        
+        // Eventos del Modal de Producto
+        colorsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-swatch')) {
+                colorsContainer.querySelector('.selected').classList.remove('selected');
+                e.target.classList.add('selected');
+                currentProductState.variant = currentProductState.product.variants[e.target.dataset.index];
+                currentProductState.slideIndex = 0;
+                updateProductModalUI();
+            }
+        });
+
+        sizesContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('size-button')) {
+                sizesContainer.querySelector('.selected').classList.remove('selected');
+                e.target.classList.add('selected');
+                currentProductState.size = e.target.dataset.size;
+            }
+        });
+
+        quantityInput.addEventListener('change', () => {
+            currentProductState.quantity = parseInt(quantityInput.value) || 1;
+            updateProductModalUI();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            const maxIndex = currentProductState.variant.images.length - 1;
+            currentProductState.slideIndex = currentProductState.slideIndex < maxIndex ? currentProductState.slideIndex + 1 : 0;
+            updateProductModalUI();
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            const maxIndex = currentProductState.variant.images.length - 1;
+            currentProductState.slideIndex = currentProductState.slideIndex > 0 ? currentProductState.slideIndex - 1 : maxIndex;
+            updateProductModalUI();
+        });
+
+        addToCartModalBtn.addEventListener('click', addToCart);
+        
+        // Eventos del Carrito
+        cartItemsContainer.addEventListener('click', (e) => {
+            if (e.target.dataset.cartId) {
+                const cartId = parseInt(e.target.dataset.cartId);
+                cart = cart.filter(item => item.cartId !== cartId);
+                updateCartUI();
+            }
+        });
+        
+        checkoutBtn.addEventListener('click', checkout);
+
+        // ========== INICIALIZACIÓN ==========
+        renderProducts();
+    });
+    </script>
 </body>
 </html>
