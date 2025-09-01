@@ -103,7 +103,7 @@
                     <path class="st0" d="M264.5,1.1v6.8h-27.2V1.1h27.2ZM237.3,21.6h23.8v6.7h-17v20.4h-6.8v-27.1Z"/>
                     <path class="st0" d="M282.7,48.8V1.1h6.8v47.6h-6.8Z"/>
                     <path class="st0" d="M346.2,37.3l2.9,6.4c-4,3.7-9.7,5.6-14.9,5.6-13.7,0-24.8-10.9-24.8-24.4S320.5.6,334.2.6s10.9,1.8,14.9,5.5l-2.9,6.4c-3.3-3.3-7-5.1-12.4-5.1-9.7,0-17.6,7.9-17.6,17.6s7.9,17.6,17.6,17.6,9.1-1.8,12.4-5.2Z"/>
-                    <path class="st0" d="M387.1.7v6.8c-8.9,1-15.6,8.3-15.6,17.5s6.8,16.5,15.6,17.5v6.8c-12.6-1-22.4-11.5-22.4-24.3s9.9-23.3,22.4-24.3ZM413.4,24.9c0,12.8-9.9,23.3-22.4,24.3v-6.8c8.9-1,15.6-8.3,15.6-17.5s-6.8-16.5-15.6-17.5V.7c12.6,1,22.4,11.5,22.4,24.3Z"/>
+                    <path class="st0" d="M387.1.7v6.8c-8.9,1-15.6,8.3-15.6,17.5s6.8,16.5,15.6,17.5v6.8c-12.6-1-22.4-11.5-22.4-24.3s9.9-23.3,22.4-24.3ZM413.4,24.9c0,12.8-9.9,23.3-22.4,24.3v-6.8c8.9-1,15.6,8.3-15.6,17.5s-6.8-16.5-15.6-17.5V.7c12.6,1,22.4,11.5,22.4,24.3Z"/>
                     <path class="st0" d="M467.1,34.8c0,8.3-6.9,14.5-18,14.5s-17.6-6.9-18.3-7.7l3.4-6.1c4,4.4,9.4,7,15,7s11.1-2.9,11.1-7.4-4.3-6.2-10.8-7.3c-13.3-2.3-17-7-17-13.4s6-13.8,17.2-13.8,9.5.2,15.4,5.7l-3.3,6.2c-2.5-2.4-6.3-5-12.3-5s-10.2,2.5-10.2,6.7,3.3,5.4,10.8,6.9c11.3,2.2,17.1,5.8,17.1,13.8Z"/>
                   </g>
                   <g>
@@ -190,11 +190,7 @@
                     </div>
                     <div>
                         <label for="custom-specs" class="font-semibold text-lg">Especificaciones de personalización:</label>
-                        <textarea id="custom-specs" rows="3" class="w-full mt-2 p-2 bg-gray-700 border border-gray-500 rounded-md text-white" placeholder="Ej: 'Quiero el logo en el pecho izquierdo'"></textarea>
-                    </div>
-                     <div>
-                        <label for="ref-image" class="font-semibold text-lg">Imagen de referencia (Opcional):</label>
-                        <input type="file" id="ref-image" class="w-full mt-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600">
+                        <textarea id="custom-specs" rows="4" class="w-full mt-2 p-2 bg-gray-700 border border-gray-500 rounded-md text-white" placeholder="Ej: 'Quiero el logo en el pecho izquierdo'"></textarea>
                     </div>
                     <div class="flex items-center gap-4">
                         <label for="quantity" class="font-semibold text-lg">Cantidad:</label>
@@ -212,20 +208,24 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // ========== CONFIGURACIÓN INICIAL ==========
-        const whatsappNumber = '+19174313384';
-        const TAX_RATE = 18; // Tasa de impuesto en porcentaje. Ejemplo: 18% para ITBIS.
+        // ========== CONFIGURACIÓN GLOBAL ==========
+        // Se modificarán según la ubicación del usuario
+        let whatsappNumber = '18091234567'; // Internacional por defecto
+        let TAX_RATE = 8; // Impuesto internacional por defecto (ej. 8%)
+        let currencySymbol = '$';
+        let currencyCode = 'USD';
 
+        // Estructura de productos con precios para ambas monedas
         const products = [
             {
-                id: 1, name: 'Taza', basePrice: 10.00, type: 'accesory',
+                id: 1, name: 'Taza', priceUSD: 10.00, priceDOP: 550.00, type: 'accesory',
                 variants: [
                     { color: 'Blanco', colorHex: '#FFFFFF', images: ['assets/taza-blanca.png'] },
                     { color: 'Negro', colorHex: '#000000', images: ['assets/taza-negra.png'] }
                 ]
             },
             {
-                id: 2, name: 'Camiseta', basePrice: 25.00, type: 'clothing',
+                id: 2, name: 'Camiseta', priceUSD: 25.00, priceDOP: 1400.00, type: 'clothing',
                 sizes: ['S', 'M', 'L', 'XL'],
                 variants: [
                     { color: 'Blanco', colorHex: '#FFFFFF', images: ['assets/camiseta-blanca-frente.png', 'assets/camiseta-blanca-espalda.png'] },
@@ -234,7 +234,7 @@
                 ]
             },
             {
-                id: 3, name: 'Hoodie', basePrice: 45.00, type: 'clothing',
+                id: 3, name: 'Hoodie', priceUSD: 45.00, priceDOP: 2500.00, type: 'clothing',
                 sizes: ['S', 'M', 'L', 'XL'],
                 variants: [
                     { color: 'Gris', colorHex: '#6B7280', images: ['assets/hoodie-gris.png'] },
@@ -242,7 +242,7 @@
                 ]
             },
             {
-                id: 4, name: 'Gorra', basePrice: 15.00, type: 'accesory',
+                id: 4, name: 'Gorra', priceUSD: 15.00, priceDOP: 850.00, type: 'accesory',
                 variants: [
                     { color: 'Negro', colorHex: '#000000', images: ['assets/gorra-negra.png'] },
                     { color: 'Beige', colorHex: '#F5F5DC', images: ['assets/gorra-beige.png'] }
@@ -264,7 +264,7 @@
         const cartTaxEl = document.getElementById('cart-tax');
         const cartTotalEl = document.getElementById('cart-total');
         const checkoutBtn = document.getElementById('checkout-btn');
-        document.getElementById('tax-rate-display').textContent = TAX_RATE;
+        const taxRateDisplay = document.getElementById('tax-rate-display');
 
         // Elementos del Modal de Producto
         const productDetailModal = document.getElementById('product-detail-modal');
@@ -282,19 +282,27 @@
         const addToCartModalBtn = document.getElementById('add-to-cart-modal-btn');
 
         // ========== FUNCIONES DE LA APLICACIÓN ==========
+
+        function getPrice(product) {
+            return currencyCode === 'DOP' ? product.priceDOP : product.priceUSD;
+        }
+        
+        function formatPrice(amount) {
+            return `${currencySymbol}${amount.toFixed(2)}`;
+        }
+
         function renderProducts() {
             productGrid.innerHTML = '';
             products.forEach(product => {
+                const price = getPrice(product);
                 productGrid.innerHTML += `
                     <div class="product-card rounded-lg overflow-hidden shadow-lg flex flex-col" data-id="${product.id}">
-                        <!-- Parte de la imagen -->
                         <div class="relative">
                             <img src="${product.variants[0].images[0]}" alt="${product.name}" class="w-full h-64 object-cover">
                             <div class="absolute top-2 right-2 p-1 px-3 bg-black/60 backdrop-blur-sm rounded-full text-white font-semibold text-sm">
-                                $${product.basePrice.toFixed(2)}
+                                ${formatPrice(price)}
                             </div>
                         </div>
-                        <!-- Parte de la información y botón -->
                         <div class="p-4 text-center flex-grow flex flex-col justify-between bg-[#373a40]">
                             <h3 class="text-lg font-semibold text-white mb-3">${product.name}</h3>
                             <div class="w-full bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors pointer-events-none">
@@ -306,13 +314,13 @@
             });
         }
         
-        // --- Lógica del Modal de Producto ---
         function openProductModal(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
 
             currentProductState = {
                 product: product,
+                basePrice: getPrice(product),
                 variant: product.variants[0],
                 size: product.sizes ? product.sizes[0] : null,
                 quantity: 1,
@@ -321,7 +329,6 @@
             
             productModalTitle.textContent = product.name;
             
-            // Colores
             colorsContainer.innerHTML = '';
             product.variants.forEach((variant, index) => {
                 const swatch = document.createElement('div');
@@ -332,7 +339,6 @@
                 colorsContainer.appendChild(swatch);
             });
             
-            // Tallas
             if (product.type === 'clothing' && product.sizes) {
                 sizesContainer.innerHTML = '';
                 product.sizes.forEach((size, index) => {
@@ -356,28 +362,25 @@
         }
 
         function updateProductModalUI() {
-            // Slideshow
             slideshow.innerHTML = '';
             currentProductState.variant.images.forEach((imgSrc, index) => {
                 const img = document.createElement('img');
                 img.src = imgSrc;
-                img.className = 'w-full h-full object-contain absolute transition-opacity duration-300';
+                img.className = 'w-full h-full object-cover absolute transition-opacity duration-300';
                 img.style.opacity = index === currentProductState.slideIndex ? '1' : '0';
                 slideshow.appendChild(img);
             });
             
-            // Precio
-            const total = currentProductState.product.basePrice * currentProductState.quantity;
-            modalTotalPrice.textContent = `$${total.toFixed(2)}`;
+            const total = currentProductState.basePrice * currentProductState.quantity;
+            modalTotalPrice.textContent = formatPrice(total);
         }
 
-        // --- Lógica del Carrito ---
         function addToCart() {
             const cartItem = {
-                cartId: Date.now(), // ID único para este item en el carrito
+                cartId: Date.now(),
                 productId: currentProductState.product.id,
                 name: currentProductState.product.name,
-                price: currentProductState.product.basePrice,
+                price: currentProductState.basePrice,
                 quantity: currentProductState.quantity,
                 color: currentProductState.variant.color,
                 size: currentProductState.size,
@@ -404,7 +407,6 @@
             cart.forEach(item => {
                 let details = `Color: ${item.color}`;
                 if (item.size) details += `, Talla: ${item.size}`;
-
                 cartItemsContainer.innerHTML += `
                     <div class="flex items-start justify-between py-3 border-b border-gray-600 last:border-b-0">
                         <div class="flex items-start gap-4">
@@ -416,7 +418,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="font-semibold text-white">$${(item.price * item.quantity).toFixed(2)}</p>
+                            <p class="font-semibold text-white">${formatPrice(item.price * item.quantity)}</p>
                             <button class="text-red-400 text-xs hover:underline" data-cart-id="${item.cartId}">Eliminar</button>
                         </div>
                     </div>`;
@@ -427,10 +429,9 @@
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const tax = subtotal * (TAX_RATE / 100);
             const total = subtotal + tax;
-
-            cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-            cartTaxEl.textContent = `$${tax.toFixed(2)}`;
-            cartTotalEl.textContent = `$${total.toFixed(2)}`;
+            cartSubtotalEl.textContent = formatPrice(subtotal);
+            cartTaxEl.textContent = formatPrice(tax);
+            cartTotalEl.textContent = formatPrice(total);
         }
 
         function updateCartCount() {
@@ -447,16 +448,15 @@
                 message += `*Color:* ${item.color}\n`;
                 if (item.size) message += `*Talla:* ${item.size}\n`;
                 if (item.specs) message += `*Especificaciones:* ${item.specs}\n`;
-                message += `*Subtotal:* $${(item.price * item.quantity).toFixed(2)}\n`;
+                message += `*Subtotal:* ${formatPrice(item.price * item.quantity)}\n`;
                 message += '------------------------\n';
             });
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const tax = subtotal * (TAX_RATE / 100);
             const total = subtotal + tax;
-
-            message += `\n*Subtotal:* $${subtotal.toFixed(2)}`;
-            message += `\n*Impuestos (${TAX_RATE}%):* $${tax.toFixed(2)}`;
-            message += `\n*TOTAL DEL PEDIDO:* $${total.toFixed(2)}`;
+            message += `\n*Subtotal:* ${formatPrice(subtotal)}`;
+            message += `\n*Impuestos (${TAX_RATE}%):* ${formatPrice(tax)}`;
+            message += `\n*TOTAL DEL PEDIDO:* ${formatPrice(total)}`;
             
             window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
@@ -464,12 +464,9 @@
         // ========== MANEJADORES DE EVENTOS ==========
         productGrid.addEventListener('click', (e) => {
             const card = e.target.closest('.product-card');
-            if (card) {
-                openProductModal(parseInt(card.dataset.id));
-            }
+            if (card) openProductModal(parseInt(card.dataset.id));
         });
 
-        // Eventos de Modales (Cerrar)
         [closeCartBtn, closeProductModalBtn].forEach(btn => btn.addEventListener('click', () => {
             cartModal.classList.add('hidden');
             productDetailModal.classList.add('hidden');
@@ -479,7 +476,6 @@
         }));
         cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
         
-        // Eventos del Modal de Producto
         colorsContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('color-swatch')) {
                 colorsContainer.querySelector('.selected').classList.remove('selected');
@@ -517,7 +513,6 @@
 
         addToCartModalBtn.addEventListener('click', addToCart);
         
-        // Eventos del Carrito
         cartItemsContainer.addEventListener('click', (e) => {
             if (e.target.dataset.cartId) {
                 const cartId = parseInt(e.target.dataset.cartId);
@@ -528,10 +523,35 @@
         
         checkoutBtn.addEventListener('click', checkout);
 
-        // ========== INICIALIZACIÓN ==========
-        renderProducts();
+        // ========== INICIALIZACIÓN CON GEOLOCALIZACIÓN ==========
+        async function initializeApp() {
+            try {
+                // Usamos un servicio de geolocalización alternativo y seguro (HTTPS)
+                const response = await fetch('https://ipinfo.io/json');
+                if (!response.ok) throw new Error('API de geolocalización falló');
+                const data = await response.json();
+
+                if (data.country === 'DO') {
+                    // Aplicar configuración para República Dominicana
+                    whatsappNumber = '18293973360';
+                    TAX_RATE = 18; // ITBIS en RD
+                    currencySymbol = 'RD$';
+                    currencyCode = 'DOP';
+                }
+            } catch (error) {
+                console.error('Error obteniendo la ubicación, se usarán los valores por defecto:', error);
+                // Si falla, se quedan los valores por defecto (internacional)
+            } finally {
+                // Una vez configurada la moneda, renderizar todo
+                taxRateDisplay.textContent = TAX_RATE;
+                renderProducts();
+                updateCartUI();
+            }
+        }
+        
+        initializeApp();
     });
     </script>
 </body>
 </html>
-
+```eof
