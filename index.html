@@ -162,6 +162,19 @@
         </div>
     </div>
     
+    <!-- ========== MODAL PARA PEDIR NOMBRE ========== -->
+    <div id="name-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-sm m-4 p-6 text-center">
+            <h3 class="text-xl font-semibold mb-4">¡Casi listo!</h3>
+            <p class="mb-4">Por favor, introduce tu nombre para el pedido:</p>
+            <input type="text" id="customer-name" class="w-full p-2 bg-gray-700 border border-gray-500 rounded-md text-white mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Tu nombre aquí...">
+            <div class="flex gap-4">
+                 <button id="cancel-name-btn" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button id="confirm-name-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Continuar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== MODAL DE DETALLE DE PRODUCTO ========== -->
     <div id="product-detail-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
          <div class="modal-content-dark rounded-lg shadow-xl w-full max-w-4xl max-h-full overflow-y-auto">
@@ -265,6 +278,12 @@
         const cartTotalEl = document.getElementById('cart-total');
         const checkoutBtn = document.getElementById('checkout-btn');
         const taxRateDisplay = document.getElementById('tax-rate-display');
+
+        // Elementos del Modal de Nombre
+        const nameModal = document.getElementById('name-modal');
+        const customerNameInput = document.getElementById('customer-name');
+        const confirmNameBtn = document.getElementById('confirm-name-btn');
+        const cancelNameBtn = document.getElementById('cancel-name-btn');
 
         // Elementos del Modal de Producto
         const productDetailModal = document.getElementById('product-detail-modal');
@@ -439,9 +458,9 @@
             cartCount.textContent = totalItems;
         }
 
-        function checkout() {
+        function checkout(customerName) {
             if (cart.length === 0) return;
-            let message = '¡Hola! 👋 Me gustaría hacer el siguiente pedido:\n\n';
+            let message = `¡Hola! 👋 Mi nombre es ${customerName} y me gustaría hacer el siguiente pedido:\n\n`;
             cart.forEach(item => {
                 message += `*Producto:* ${item.name}\n`;
                 message += `*Cantidad:* ${item.quantity}\n`;
@@ -470,8 +489,9 @@
         [closeCartBtn, closeProductModalBtn].forEach(btn => btn.addEventListener('click', () => {
             cartModal.classList.add('hidden');
             productDetailModal.classList.add('hidden');
+            nameModal.classList.add('hidden');
         }));
-        [cartModal, productDetailModal].forEach(modal => modal.addEventListener('click', (e) => {
+        [cartModal, productDetailModal, nameModal].forEach(modal => modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.classList.add('hidden');
         }));
         cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
@@ -521,7 +541,35 @@
             }
         });
         
-        checkoutBtn.addEventListener('click', checkout);
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) return;
+            nameModal.classList.remove('hidden');
+            customerNameInput.focus();
+        });
+
+        confirmNameBtn.addEventListener('click', () => {
+            const customerName = customerNameInput.value.trim();
+            if (customerName) {
+                checkout(customerName);
+                nameModal.classList.add('hidden');
+                customerNameInput.value = '';
+                customerNameInput.classList.remove('border-red-500');
+            } else {
+                customerNameInput.classList.add('border-red-500');
+            }
+        });
+
+        cancelNameBtn.addEventListener('click', () => {
+            nameModal.classList.add('hidden');
+            customerNameInput.value = '';
+            customerNameInput.classList.remove('border-red-500');
+        });
+        
+        customerNameInput.addEventListener('input', () => {
+            if(customerNameInput.value.trim()){
+                 customerNameInput.classList.remove('border-red-500');
+            }
+        });
 
         // ========== INICIALIZACIÓN CON GEOLOCALIZACIÓN ==========
         async function initializeApp() {
@@ -554,4 +602,3 @@
     </script>
 </body>
 </html>
-```eof
