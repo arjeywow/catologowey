@@ -30,7 +30,15 @@
         
         .modal-content-dark { background-color: #373a40; color: #e5e7eb; }
         
-        /* Estilos para el modal de producto */
+        .selection-button {
+            border: 1px solid #6b7280;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .selection-button.selected { background-color: #818cf8; color: #111827; border-color: #818cf8; font-weight: 600; }
+        
         .color-swatch {
             width: 32px;
             height: 32px;
@@ -40,16 +48,7 @@
             transition: border-color 0.2s;
         }
         .color-swatch.selected { border-color: #818cf8; }
-        
-        .size-button {
-            border: 1px solid #6b7280;
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .size-button.selected { background-color: #818cf8; color: #111827; border-color: #818cf8; }
-        
+
         .slideshow-btn {
             position: absolute;
             top: 50%;
@@ -197,7 +196,11 @@
                 </div>
                 <!-- Columna de Opciones -->
                 <div class="space-y-4">
-                    <div>
+                    <div id="style-section">
+                        <label class="font-semibold text-lg">Estilo:</label>
+                        <div id="product-modal-styles" class="flex gap-3 mt-2 flex-wrap"></div>
+                    </div>
+                    <div id="color-section">
                         <label class="font-semibold text-lg">Color:</label>
                         <div id="product-modal-colors" class="flex gap-3 mt-2 flex-wrap"></div>
                     </div>
@@ -207,7 +210,7 @@
                     </div>
                     <div>
                         <label for="custom-specs" class="font-semibold text-lg">Especificaciones de personalización:</label>
-                        <textarea id="custom-specs" rows="4" class="w-full mt-2 p-2 bg-gray-700 border border-gray-500 rounded-md text-white" placeholder="Ej: 'Quiero el logo en el pecho izquierdo'"></textarea>
+                        <textarea id="custom-specs" rows="3" class="w-full mt-2 p-2 bg-gray-700 border border-gray-500 rounded-md text-white" placeholder="Ej: 'Quiero el logo en el pecho izquierdo'"></textarea>
                     </div>
                     <div class="flex items-center gap-4">
                         <label for="quantity" class="font-semibold text-lg">Cantidad:</label>
@@ -226,43 +229,101 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // ========== CONFIGURACIÓN GLOBAL ==========
-        // Se modificarán según la ubicación del usuario
         let whatsappNumber = '18091234567'; // Internacional por defecto
         let TAX_RATE = 8; // Impuesto internacional por defecto (ej. 8%)
         let currencySymbol = '$';
         let currencyCode = 'USD';
 
-        // Estructura de productos con precios para ambas monedas
+        // Estructura de productos con precios por variante y talla
         const products = [
             {
-                id: 1, name: 'Taza', priceUSD: 10.00, priceDOP: 550.00, type: 'accesory',
+                id: 1, name: 'Taza', type: 'accesory',
                 variants: [
-                    { color: 'Blanco', colorHex: '#FFFFFF', images: ['assets/taza-blanca.png'] },
-                    { color: 'Negro', colorHex: '#000000', images: ['assets/taza-negra.png'] }
+                    { 
+                        style: 'Taza Blanca', 
+                        priceUSD: 10.00, priceDOP: 550.00,
+                        colors: [
+                            { name: 'Blanco', hex: '#FFFFFF', images: ['assets/taza-blanca.png'] },
+                        ]
+                    },
+                    { 
+                        style: 'Taza Negra Mágica',
+                        priceUSD: 15.00, priceDOP: 850.00,
+                        colors: [
+                           { name: 'Negro', hex: '#000000', images: ['assets/taza-negra.png'] }
+                        ]
+                    }
                 ]
             },
             {
-                id: 2, name: 'Camiseta', priceUSD: 25.00, priceDOP: 1400.00, type: 'clothing',
+                id: 2, name: 'Camiseta', type: 'clothing',
+                sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+                variants: [
+                    { 
+                        style: 'Algodón', 
+                        prices: { // Precios por talla para este estilo
+                            'S': { priceUSD: 25.00, priceDOP: 1400.00 },
+                            'M': { priceUSD: 25.00, priceDOP: 1400.00 },
+                            'L': { priceUSD: 27.00, priceDOP: 1550.00 },
+                            'XL': { priceUSD: 28.00, priceDOP: 1600.00 },
+                            'XXL': { priceUSD: 30.00, priceDOP: 1750.00 }
+                        },
+                        colors: [
+                            { name: 'Blanco', hex: '#FFFFFF', images: ['assets/camiseta-blanca-frente.png', 'assets/camiseta-blanca-espalda.png'] },
+                            { name: 'Negro', hex: '#000000', images: ['assets/camiseta-negra-frente.png', 'assets/camiseta-negra-espalda.png'] },
+                        ]
+                    },
+                    { 
+                        style: 'Poliéster Dry-Fit',
+                        prices: {
+                            'S': { priceUSD: 30.00, priceDOP: 1700.00 },
+                            'M': { priceUSD: 30.00, priceDOP: 1700.00 },
+                            'L': { priceUSD: 32.00, priceDOP: 1850.00 },
+                            'XL': { priceUSD: 33.00, priceDOP: 1900.00 },
+                            'XXL': { priceUSD: 35.00, priceDOP: 2050.00 }
+                        },
+                        colors: [
+                            { name: 'Rojo', hex: '#DC2626', images: ['assets/camiseta-roja.png'] }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 3, name: 'Hoodie', type: 'clothing',
                 sizes: ['S', 'M', 'L', 'XL'],
                 variants: [
-                    { color: 'Blanco', colorHex: '#FFFFFF', images: ['assets/camiseta-blanca-frente.png', 'assets/camiseta-blanca-espalda.png'] },
-                    { color: 'Negro', colorHex: '#000000', images: ['assets/camiseta-negra-frente.png', 'assets/camiseta-negra-espalda.png'] },
-                    { color: 'Rojo', colorHex: '#DC2626', images: ['assets/camiseta-roja.png'] }
+                    { 
+                        style: 'Algodón Gris',
+                        prices: {
+                            'S': { priceUSD: 45.00, priceDOP: 2500.00 },
+                            'M': { priceUSD: 45.00, priceDOP: 2500.00 },
+                            'L': { priceUSD: 48.00, priceDOP: 2700.00 },
+                            'XL': { priceUSD: 50.00, priceDOP: 2800.00 }
+                        },
+                        colors: [
+                            { name: 'Gris', hex: '#6B7280', images: ['assets/hoodie-gris.png'] }
+                        ]
+                    },
+                    { 
+                        style: 'Felpa Azul',
+                        prices: {
+                            'S': { priceUSD: 50.00, priceDOP: 2800.00 },
+                            'M': { priceUSD: 50.00, priceDOP: 2800.00 },
+                            'L': { priceUSD: 53.00, priceDOP: 3000.00 },
+                            'XL': { priceUSD: 55.00, priceDOP: 3100.00 }
+                        },
+                         colors: [
+                            { name: 'Azul', hex: '#3B82F6', images: ['assets/hoodie-azul.png'] }
+                        ]
+                    }
                 ]
             },
             {
-                id: 3, name: 'Hoodie', priceUSD: 45.00, priceDOP: 2500.00, type: 'clothing',
-                sizes: ['S', 'M', 'L', 'XL'],
+                id: 5, name: 'Llavero', type: 'accesory',
                 variants: [
-                    { color: 'Gris', colorHex: '#6B7280', images: ['assets/hoodie-gris.png'] },
-                    { color: 'Azul', colorHex: '#3B82F6', images: ['assets/hoodie-azul.png'] }
-                ]
-            },
-            {
-                id: 4, name: 'Gorra', priceUSD: 15.00, priceDOP: 850.00, type: 'accesory',
-                variants: [
-                    { color: 'Negro', colorHex: '#000000', images: ['assets/gorra-negra.png'] },
-                    { color: 'Beige', colorHex: '#F5F5DC', images: ['assets/gorra-beige.png'] }
+                    { style: 'Metálico Circular', priceUSD: 12.00, priceDOP: 650.00, colors: [{ name: 'Plateado', hex: '#C0C0C0', images: ['assets/llavero-metalico.png'] }] },
+                    { style: 'Acrílico Cuadrado', priceUSD: 10.00, priceDOP: 550.00, colors: [{ name: 'Transparente', hex: '#E5E7EB', images: ['assets/llavero-acrilico.png'] }] },
+                    { style: 'Polímero Rectangular', priceUSD: 8.00, priceDOP: 450.00, colors: [{ name: 'Blanco', hex: '#FFFFFF', images: ['assets/llavero-polimero.png'] }] }
                 ]
             }
         ];
@@ -283,19 +344,18 @@
         const checkoutBtn = document.getElementById('checkout-btn');
         const taxRateDisplay = document.getElementById('tax-rate-display');
 
-        // Elementos del Modal de Nombre
         const nameModal = document.getElementById('name-modal');
         const customerNameInput = document.getElementById('customer-name');
         const confirmNameBtn = document.getElementById('confirm-name-btn');
         const cancelNameBtn = document.getElementById('cancel-name-btn');
 
-        // Elementos del Modal de Producto
         const productDetailModal = document.getElementById('product-detail-modal');
         const closeProductModalBtn = document.getElementById('close-product-modal-btn');
         const productModalTitle = document.getElementById('product-modal-title');
         const slideshow = document.getElementById('product-modal-slideshow');
         const prevBtn = document.getElementById('prev-slide-btn');
         const nextBtn = document.getElementById('next-slide-btn');
+        const stylesContainer = document.getElementById('product-modal-styles');
         const colorsContainer = document.getElementById('product-modal-colors');
         const sizeSection = document.getElementById('size-section');
         const sizesContainer = document.getElementById('product-modal-sizes');
@@ -303,11 +363,15 @@
         const quantityInput = document.getElementById('quantity');
         const modalTotalPrice = document.getElementById('product-modal-total-price');
         const addToCartModalBtn = document.getElementById('add-to-cart-modal-btn');
+        
 
-        // ========== FUNCIONES DE LA APLICACIÓN ==========
-
-        function getPrice(product) {
-            return currencyCode === 'DOP' ? product.priceDOP : product.priceUSD;
+        function getPrice(variant, size) {
+            if (variant.prices && size) { // Para ropa con tallas
+                const priceData = variant.prices[size];
+                return currencyCode === 'DOP' ? priceData.priceDOP : priceData.priceUSD;
+            }
+            // Para accesorios sin tallas
+            return currencyCode === 'DOP' ? variant.priceDOP : variant.priceUSD;
         }
         
         function formatPrice(amount) {
@@ -317,19 +381,26 @@
         function renderProducts() {
             productGrid.innerHTML = '';
             products.forEach(product => {
-                const price = getPrice(product);
+                const firstVariant = product.variants[0];
+                let price;
+                if (product.type === 'clothing') {
+                     price = getPrice(firstVariant, product.sizes[0]);
+                } else {
+                     price = getPrice(firstVariant, null);
+                }
+
                 productGrid.innerHTML += `
                     <div class="product-card rounded-lg overflow-hidden shadow-lg flex flex-col" data-id="${product.id}">
                         <div class="relative">
-                            <img src="${product.variants[0].images[0]}" alt="${product.name}" class="w-full h-64 object-cover">
+                            <img src="${firstVariant.colors[0].images[0]}" alt="${product.name}" class="w-full h-64 object-cover">
                             <div class="absolute top-2 right-2 p-1 px-3 bg-black/60 backdrop-blur-sm rounded-full text-white font-semibold text-sm">
-                                ${formatPrice(price)}
+                                Desde ${formatPrice(price)}
                             </div>
                         </div>
                         <div class="p-4 text-center flex-grow flex flex-col justify-between bg-[#373a40]">
                             <h3 class="text-lg font-semibold text-white mb-3">${product.name}</h3>
                             <div class="w-full bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors pointer-events-none">
-                                Personalizar
+                                Ver Opciones
                             </div>
                         </div>
                     </div>
@@ -341,37 +412,25 @@
             const product = products.find(p => p.id === productId);
             if (!product) return;
 
+            const initialVariant = product.variants[0];
+            const initialColor = initialVariant.colors[0];
+            const initialSize = product.sizes ? product.sizes[0] : null;
+
             currentProductState = {
                 product: product,
-                basePrice: getPrice(product),
-                variant: product.variants[0],
-                size: product.sizes ? product.sizes[0] : null,
+                variant: initialVariant,
+                color: initialColor,
+                size: initialSize,
                 quantity: 1,
                 slideIndex: 0
             };
             
             productModalTitle.textContent = product.name;
-            
-            colorsContainer.innerHTML = '';
-            product.variants.forEach((variant, index) => {
-                const swatch = document.createElement('div');
-                swatch.className = 'color-swatch';
-                if (index === 0) swatch.classList.add('selected');
-                swatch.style.backgroundColor = variant.colorHex;
-                swatch.dataset.index = index;
-                colorsContainer.appendChild(swatch);
-            });
+            populateStyles(product.variants, 0);
+            populateColors(initialVariant.colors, 0);
             
             if (product.type === 'clothing' && product.sizes) {
-                sizesContainer.innerHTML = '';
-                product.sizes.forEach((size, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'size-button';
-                    if (index === 0) btn.classList.add('selected');
-                    btn.textContent = size;
-                    btn.dataset.size = size;
-                    sizesContainer.appendChild(btn);
-                });
+                populateSizes(product.sizes, 0);
                 sizeSection.classList.remove('hidden');
             } else {
                 sizeSection.classList.add('hidden');
@@ -384,31 +443,74 @@
             productDetailModal.classList.remove('hidden');
         }
 
+        function populateStyles(variants, selectedIndex) {
+            stylesContainer.innerHTML = '';
+            variants.forEach((variant, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'selection-button';
+                if (index === selectedIndex) btn.classList.add('selected');
+                btn.textContent = variant.style;
+                btn.dataset.index = index;
+                stylesContainer.appendChild(btn);
+            });
+        }
+
+        function populateColors(colors, selectedIndex) {
+            colorsContainer.innerHTML = '';
+             colors.forEach((color, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                if (index === selectedIndex) swatch.classList.add('selected');
+                swatch.style.backgroundColor = color.hex;
+                swatch.dataset.index = index;
+                colorsContainer.appendChild(swatch);
+            });
+        }
+
+        function populateSizes(sizes, selectedIndex) {
+             sizesContainer.innerHTML = '';
+            sizes.forEach((size, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'selection-button';
+                if (index === selectedIndex) btn.classList.add('selected');
+                btn.textContent = size;
+                btn.dataset.size = size;
+                sizesContainer.appendChild(btn);
+            });
+        }
+
         function updateProductModalUI() {
+            // Actualizar slideshow
             slideshow.innerHTML = '';
-            currentProductState.variant.images.forEach((imgSrc, index) => {
+            currentProductState.color.images.forEach((imgSrc, index) => {
                 const img = document.createElement('img');
                 img.src = imgSrc;
                 img.className = 'w-full h-full object-cover absolute transition-opacity duration-300';
                 img.style.opacity = index === currentProductState.slideIndex ? '1' : '0';
                 slideshow.appendChild(img);
             });
-            
-            const total = currentProductState.basePrice * currentProductState.quantity;
+            prevBtn.style.display = currentProductState.color.images.length > 1 ? 'flex' : 'none';
+            nextBtn.style.display = currentProductState.color.images.length > 1 ? 'flex' : 'none';
+
+            // Actualizar precio total
+            const variantPrice = getPrice(currentProductState.variant, currentProductState.size);
+            const total = variantPrice * currentProductState.quantity;
             modalTotalPrice.textContent = formatPrice(total);
         }
 
         function addToCart() {
+            const price = getPrice(currentProductState.variant, currentProductState.size);
             const cartItem = {
                 cartId: Date.now(),
                 productId: currentProductState.product.id,
                 name: currentProductState.product.name,
-                price: currentProductState.basePrice,
+                style: currentProductState.variant.style,
+                color: currentProductState.color.name,
+                price: price,
                 quantity: currentProductState.quantity,
-                color: currentProductState.variant.color,
                 size: currentProductState.size,
                 specs: customSpecsInput.value,
-                image: currentProductState.variant.images[0]
+                image: currentProductState.color.images[0]
             };
             cart.push(cartItem);
             updateCartUI();
@@ -428,7 +530,7 @@
                 return;
             }
             cart.forEach(item => {
-                let details = `Color: ${item.color}`;
+                let details = `Estilo: ${item.style}, Color: ${item.color}`;
                 if (item.size) details += `, Talla: ${item.size}`;
                 cartItemsContainer.innerHTML += `
                     <div class="flex items-start justify-between py-3 border-b border-gray-600 last:border-b-0">
@@ -467,11 +569,12 @@
             let message = `¡Hola! 👋 Mi nombre es ${customerName} y me gustaría hacer el siguiente pedido:\n\n`;
             cart.forEach(item => {
                 message += `*Producto:* ${item.name}\n`;
-                message += `*Cantidad:* ${item.quantity}\n`;
+                message += `*Estilo:* ${item.style}\n`;
                 message += `*Color:* ${item.color}\n`;
                 if (item.size) message += `*Talla:* ${item.size}\n`;
+                message += `*Cantidad:* ${item.quantity}\n`;
                 if (item.specs) message += `*Especificaciones:* ${item.specs}\n`;
-                message += `*Subtotal:* ${formatPrice(item.price * item.quantity)}\n`;
+                message += `*Precio Unitario:* ${formatPrice(item.price)}\n`;
                 message += '------------------------\n';
             });
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -490,7 +593,7 @@
             if (card) openProductModal(parseInt(card.dataset.id));
         });
 
-        [closeCartBtn, closeProductModalBtn].forEach(btn => btn.addEventListener('click', () => {
+        [closeCartBtn, closeProductModalBtn, cancelNameBtn].forEach(btn => btn.addEventListener('click', () => {
             cartModal.classList.add('hidden');
             productDetailModal.classList.add('hidden');
             nameModal.classList.add('hidden');
@@ -500,37 +603,56 @@
         }));
         cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
         
+        stylesContainer.addEventListener('click', (e) => {
+            const target = e.target.closest('.selection-button');
+            if (target) {
+                stylesContainer.querySelector('.selected').classList.remove('selected');
+                target.classList.add('selected');
+                
+                const newVariant = currentProductState.product.variants[target.dataset.index];
+                currentProductState.variant = newVariant;
+                currentProductState.color = newVariant.colors[0]; // Reset color to first available
+                currentProductState.slideIndex = 0;
+                
+                populateColors(newVariant.colors, 0); // Repopulate colors for new style
+                updateProductModalUI();
+            }
+        });
+
         colorsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('color-swatch')) {
+            const target = e.target.closest('.color-swatch');
+            if (target) {
                 colorsContainer.querySelector('.selected').classList.remove('selected');
-                e.target.classList.add('selected');
-                currentProductState.variant = currentProductState.product.variants[e.target.dataset.index];
+                target.classList.add('selected');
+                currentProductState.color = currentProductState.variant.colors[target.dataset.index];
                 currentProductState.slideIndex = 0;
                 updateProductModalUI();
             }
         });
 
         sizesContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('size-button')) {
+             const target = e.target.closest('.selection-button');
+            if (target) {
                 sizesContainer.querySelector('.selected').classList.remove('selected');
-                e.target.classList.add('selected');
-                currentProductState.size = e.target.dataset.size;
+                target.classList.add('selected');
+                currentProductState.size = target.dataset.size;
+                updateProductModalUI(); // Update price when size changes
             }
         });
 
-        quantityInput.addEventListener('change', () => {
+        quantityInput.addEventListener('input', () => {
             currentProductState.quantity = parseInt(quantityInput.value) || 1;
             updateProductModalUI();
         });
         
         nextBtn.addEventListener('click', () => {
-            const maxIndex = currentProductState.variant.images.length - 1;
+            const maxIndex = currentProductState.color.images.length - 1;
             currentProductState.slideIndex = currentProductState.slideIndex < maxIndex ? currentProductState.slideIndex + 1 : 0;
             updateProductModalUI();
         });
         
         prevBtn.addEventListener('click', () => {
-            const maxIndex = currentProductState.variant.images.length - 1;
+            const maxIndex = currentProductState.color.images.length - 1;
             currentProductState.slideIndex = currentProductState.slideIndex > 0 ? currentProductState.slideIndex - 1 : maxIndex;
             updateProductModalUI();
         });
@@ -562,12 +684,6 @@
                 customerNameInput.classList.add('border-red-500');
             }
         });
-
-        cancelNameBtn.addEventListener('click', () => {
-            nameModal.classList.add('hidden');
-            customerNameInput.value = '';
-            customerNameInput.classList.remove('border-red-500');
-        });
         
         customerNameInput.addEventListener('input', () => {
             if(customerNameInput.value.trim()){
@@ -578,13 +694,11 @@
         // ========== INICIALIZACIÓN CON GEOLOCALIZACIÓN ==========
         async function initializeApp() {
             try {
-                // Usamos un servicio de geolocalización alternativo y seguro (HTTPS)
                 const response = await fetch('https://ipinfo.io/json');
                 if (!response.ok) throw new Error('API de geolocalización falló');
                 const data = await response.json();
 
                 if (data.country === 'DO') {
-                    // Aplicar configuración para República Dominicana
                     whatsappNumber = '18293973360';
                     TAX_RATE = 18; // ITBIS en RD
                     currencySymbol = 'RD$';
@@ -592,9 +706,7 @@
                 }
             } catch (error) {
                 console.error('Error obteniendo la ubicación, se usarán los valores por defecto:', error);
-                // Si falla, se quedan los valores por defecto (internacional)
             } finally {
-                // Una vez configurada la moneda, renderizar todo
                 taxRateDisplay.textContent = TAX_RATE;
                 renderProducts();
                 updateCartUI();
@@ -606,3 +718,4 @@
     </script>
 </body>
 </html>
+```eof
